@@ -213,6 +213,9 @@
     .send-btn:disabled { opacity: .45; cursor: not-allowed; }
     .send-btn svg, .stop-btn svg { width: 16px; height: 16px; }
     .stop-btn { background: linear-gradient(135deg, #ed7187, #c64f69); }
+    /* Keep the Stop and Send controls in sync with their HTML hidden state. */
+    #sendBtn[hidden],
+    #stopBtn[hidden] { display: none !important; }
     .chat-footnote { margin: 9px 0 0; color: var(--muted-2); text-align: center; font-size: 9px; }
 
     /* Pages */
