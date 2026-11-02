@@ -1,0 +1,3431 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResearchDesk // 3D Multi-Agent AI Research Assistant</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+
+  <style>
+    :root,
+    [data-theme="dark"] {
+      --bg-primary: #050811;
+      --bg-secondary: #0a1022;
+      --bg-gradient: radial-gradient(circle at 16% 18%, rgba(56, 189, 248, 0.14) 0%, transparent 42%),
+                     radial-gradient(circle at 84% 22%, rgba(168, 85, 247, 0.15) 0%, transparent 46%),
+                     radial-gradient(circle at 52% 86%, rgba(16, 185, 129, 0.11) 0%, transparent 50%),
+                     linear-gradient(145deg, #04070e 0%, #0a0f20 55%, #050811 100%);
+      --glass-surface: rgba(15, 23, 42, 0.64);
+      --glass-surface-elevated: rgba(20, 30, 56, 0.78);
+      --glass-surface-hover: rgba(29, 43, 77, 0.86);
+      --glass-border: rgba(148, 163, 184, 0.16);
+      --glass-border-strong: rgba(56, 189, 248, 0.42);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-cyan: #38bdf8;
+      --accent-violet: #a855f7;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-indigo: #6366f1;
+      --primary-gradient: linear-gradient(135deg, #38bdf8 0%, #6366f1 52%, #a855f7 100%);
+      --shadow-glass: 0 20px 50px rgba(2, 6, 23, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      --shadow-glow: 0 0 28px rgba(56, 189, 248, 0.26);
+      --code-bg: rgba(8, 12, 24, 0.92);
+      --user-msg-bg: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(99, 102, 241, 0.24));
+      --ai-msg-bg: rgba(15, 23, 42, 0.74);
+      --scrollbar-thumb: rgba(148, 163, 184, 0.25);
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f1f5f9;
+      --bg-secondary: #e2e8f0;
+      --bg-gradient: radial-gradient(circle at 16% 18%, rgba(14, 165, 233, 0.14) 0%, transparent 45%),
+                     radial-gradient(circle at 84% 22%, rgba(139, 92, 246, 0.13) 0%, transparent 46%),
+                     radial-gradient(circle at 52% 86%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+                     linear-gradient(145deg, #f8fafc 0%, #eef2ff 55%, #f1f5f9 100%);
+      --glass-surface: rgba(255, 255, 255, 0.74);
+      --glass-surface-elevated: rgba(255, 255, 255, 0.9);
+      --glass-surface-hover: rgba(241, 245, 249, 0.96);
+      --glass-border: rgba(15, 23, 42, 0.11);
+      --glass-border-strong: rgba(2, 132, 199, 0.42);
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      --accent-cyan: #0284c7;
+      --accent-violet: #7c3aed;
+      --accent-emerald: #059669;
+      --accent-amber: #d97706;
+      --accent-rose: #e11d48;
+      --accent-indigo: #4f46e5;
+      --primary-gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 52%, #7c3aed 100%);
+      --shadow-glass: 0 16px 40px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      --shadow-glow: 0 0 24px rgba(2, 132, 199, 0.22);
+      --code-bg: #0f172a;
+      --user-msg-bg: linear-gradient(135deg, rgba(2, 132, 199, 0.14), rgba(79, 70, 229, 0.16));
+      --ai-msg-bg: rgba(255, 255, 255, 0.88);
+      --scrollbar-thumb: rgba(100, 116, 139, 0.32);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      background-image: var(--bg-gradient);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.35s ease, color 0.25s ease;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-cyan);
+    }
+
+    /* Ambient Glowing Orbital Rings in CSS Background */
+    .ambient-orbit-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .ambient-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(56, 189, 248, 0.12);
+      box-shadow: 0 0 40px rgba(56, 189, 248, 0.06), inset 0 0 40px rgba(168, 85, 247, 0.06);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotateX(68deg) rotateZ(0deg);
+      animation: orbitSpin 38s linear infinite;
+    }
+    .ambient-ring.ring-1 {
+      width: 680px;
+      height: 680px;
+    }
+    .ambient-ring.ring-2 {
+      width: 980px;
+      height: 980px;
+      border-color: rgba(168, 85, 247, 0.11);
+      animation-duration: 56s;
+      animation-direction: reverse;
+    }
+    .ambient-ring.ring-3 {
+      width: 1280px;
+      height: 1280px;
+      border-style: dashed;
+      border-color: rgba(16, 185, 129, 0.09);
+      animation-duration: 82s;
+    }
+
+    @keyframes orbitSpin {
+      0% { transform: translate(-50%, -50%) rotateX(68deg) rotateY(12deg) rotateZ(0deg); }
+      100% { transform: translate(-50%, -50%) rotateX(68deg) rotateY(12deg) rotateZ(360deg); }
+    }
+
+    body.reduced-motion *,
+    body.reduced-motion .ambient-ring {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+
+    /* App Shell Layout */
+    .app-shell {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 315px 1fr;
+      width: 100vw;
+      height: 100vh;
+      transition: grid-template-columns 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .app-shell.sidebar-collapsed {
+      grid-template-columns: 0px 1fr;
+    }
+
+    .glass-panel {
+      background: var(--glass-surface);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-glass);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--glass-border);
+      overflow: hidden;
+      transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+      z-index: 25;
+      min-width: 0;
+    }
+    .app-shell.sidebar-collapsed .sidebar {
+      transform: translateX(-100%);
+      opacity: 0;
+      pointer-events: none;
+      border-right: none;
+    }
+
+    .sidebar-header {
+      padding: 18px 18px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+    .brand-orb {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .brand-orb::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 14px;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      animation: pulseRing 3s ease-in-out infinite;
+    }
+    @keyframes pulseRing {
+      0%, 100% { transform: scale(1); opacity: 0.65; }
+      50% { transform: scale(1.09); opacity: 0.2; }
+    }
+
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.04rem;
+      letter-spacing: 0.02em;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-subtitle {
+      font-size: 0.69rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .sidebar-actions {
+      padding: 14px 16px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-new-chat {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(99, 102, 241, 0.2));
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      box-shadow: var(--shadow-glow);
+    }
+    .btn-new-chat:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent-cyan);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(168, 85, 247, 0.28));
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-box svg {
+      position: absolute;
+      left: 11px;
+      width: 15px;
+      height: 15px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-surface-elevated);
+      color: var(--text-primary);
+      font-size: 0.81rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+
+    .sidebar-section-label {
+      padding: 10px 18px 6px;
+      font-size: 0.69rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* History List */
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 11px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+    .history-item:hover {
+      background: var(--glass-surface-hover);
+      color: var(--text-primary);
+      border-color: var(--glass-border);
+    }
+    .history-item.active {
+      background: var(--glass-surface-elevated);
+      color: var(--text-primary);
+      border-color: var(--glass-border-strong);
+      box-shadow: 0 4px 16px rgba(2, 6, 23, 0.22);
+    }
+    .history-item-main {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      flex: 1;
+    }
+    .history-item-title {
+      font-size: 0.82rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item-meta {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .history-delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      opacity: 0;
+      transition: opacity 0.18s ease, color 0.18s ease, background 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .history-item:hover .history-delete-btn,
+    .history-item.active .history-delete-btn {
+      opacity: 1;
+    }
+    .history-delete-btn:hover {
+      color: var(--accent-rose);
+      background: rgba(244, 63, 94, 0.12);
+    }
+
+    /* Sidebar Agent Roster Mini-Cards */
+    .sidebar-agents {
+      padding: 8px 12px 12px;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 245px;
+      overflow-y: auto;
+    }
+    .mini-agent-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 9px;
+      background: var(--glass-surface-elevated);
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.77rem;
+    }
+    .mini-agent-row:hover,
+    .mini-agent-row.selected {
+      border-color: var(--accent-cyan);
+      transform: translateX(2px);
+    }
+    .mini-agent-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .agent-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .agent-role-badge {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.14);
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .sidebar-footer {
+      padding: 12px 14px;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    /* Main Workspace Area */
+    .main-stage {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top Navigation & Telemetry Header */
+    .topbar {
+      height: 64px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--glass-border);
+      z-index: 15;
+      flex-shrink: 0;
+    }
+    .topbar-left,
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-surface-elevated);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--accent-cyan);
+      background: var(--glass-surface-hover);
+      transform: translateY(-1px);
+    }
+    .icon-btn.active {
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+    }
+
+    /* Health Status Pill */
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-surface-elevated);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-secondary);
+    }
+    .health-pill:hover {
+      border-color: var(--accent-cyan);
+      color: var(--text-primary);
+    }
+    .status-led {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent-amber);
+      box-shadow: 0 0 10px var(--accent-amber);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    .status-led.online {
+      background: var(--accent-emerald);
+      box-shadow: 0 0 12px var(--accent-emerald);
+    }
+    .status-led.offline {
+      background: var(--accent-rose);
+      box-shadow: 0 0 12px var(--accent-rose);
+    }
+
+    /* Mode Switcher Segmented Control */
+    .segmented-control {
+      display: inline-flex;
+      background: var(--glass-surface-elevated);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .segment-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .segment-btn.active {
+      background: var(--primary-gradient);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
+    }
+
+    /* Workspace Split Grid: 3D Neural Hub + Interactive Chat */
+    .workspace-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 45% 55%;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      transition: grid-template-columns 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .workspace-body.layout-chat-focus {
+      grid-template-columns: 0% 100%;
+    }
+    .workspace-body.layout-neural-focus {
+      grid-template-columns: 100% 0%;
+    }
+
+    /* Left Column: 3D Neural Visualization & 3D Interactive Agent Cards */
+    .neural-stage-column {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid var(--glass-border);
+      overflow: hidden;
+      min-width: 0;
+    }
+    .workspace-body.layout-chat-focus .neural-stage-column {
+      opacity: 0;
+      pointer-events: none;
+      border-right: none;
+    }
+
+    .canvas-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    #neuralCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+    #neuralCanvas:active {
+      cursor: grabbing;
+    }
+
+    /* Simplified Visual Fallback when WebGL is disabled/unavailable */
+    .webgl-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 24px;
+      text-align: center;
+      z-index: 2;
+      background: radial-gradient(circle at center, rgba(56, 189, 248, 0.14), transparent 70%);
+    }
+    .webgl-fallback.visible {
+      display: flex;
+    }
+    .fallback-svg {
+      width: 260px;
+      height: 260px;
+      margin-bottom: 12px;
+    }
+
+    /* Overlay HUD inside 3D Stage */
+    .neural-hud-top {
+      position: relative;
+      z-index: 4;
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .neural-hud-top > * {
+      pointer-events: auto;
+    }
+    .hud-badge {
+      padding: 11px 14px;
+      border-radius: 14px;
+      max-width: 340px;
+    }
+    .hud-badge-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.84rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--text-primary);
+    }
+    .hud-badge-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      line-height: 1.42;
+    }
+    .hud-model-tag {
+      display: inline-block;
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent-cyan);
+    }
+
+    .hud-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Interactive 3D Agent Cards Deck at Bottom of 3D Stage */
+    .neural-hud-bottom {
+      position: relative;
+      z-index: 4;
+      padding: 12px 16px 16px;
+      background: linear-gradient(to top, rgba(5, 8, 17, 0.88) 0%, transparent 100%);
+    }
+    [data-theme="light"] .neural-hud-bottom {
+      background: linear-gradient(to top, rgba(241, 245, 249, 0.92) 0%, transparent 100%);
+    }
+
+    .agent-cards-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.71rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .agent-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 8px;
+      perspective: 900px;
+    }
+
+    .agent-card-3d {
+      position: relative;
+      padding: 10px 11px;
+      border-radius: 12px;
+      background: var(--glass-surface-elevated);
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.18s ease-out, border-color 0.25s ease, box-shadow 0.25s ease;
+      user-select: none;
+    }
+    .agent-card-3d:hover,
+    .agent-card-3d.active {
+      border-color: var(--agent-color, var(--accent-cyan));
+      box-shadow: 0 10px 25px rgba(2, 6, 23, 0.45), 0 0 18px var(--agent-glow, rgba(56, 189, 248, 0.28));
+    }
+    .agent-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 5px;
+      transform: translateZ(16px);
+    }
+    .agent-card-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--agent-color, var(--accent-cyan));
+    }
+    .agent-status-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.61rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.14);
+      color: var(--accent-emerald);
+      font-weight: 600;
+    }
+    .agent-status-tag.busy {
+      background: rgba(56, 189, 248, 0.22);
+      color: var(--accent-cyan);
+    }
+    .agent-card-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      transform: translateZ(12px);
+    }
+    .agent-card-desc {
+      font-size: 0.66rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      line-height: 1.3;
+      transform: translateZ(8px);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Right Column: Chat Interface */
+    .chat-column {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      min-width: 0;
+      position: relative;
+      background: rgba(5, 8, 17, 0.25);
+    }
+    [data-theme="light"] .chat-column {
+      background: rgba(255, 255, 255, 0.35);
+    }
+    .workspace-body.layout-neural-focus .chat-column {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Active Agent Subbar */
+    .chat-subbar {
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.77rem;
+      background: var(--glass-surface);
+      flex-shrink: 0;
+    }
+    .active-agent-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .agent-pill-selector {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--glass-border-strong);
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-cyan);
+      font-weight: 600;
+      font-size: 0.73rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Messages Stream Container */
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      scroll-behavior: smooth;
+    }
+
+    /* Welcome Hero Card inside Chat */
+    .welcome-hero {
+      margin: auto 0;
+      padding: 24px;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-surface-elevated);
+      box-shadow: var(--shadow-glass);
+      text-align: center;
+    }
+    .welcome-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.71rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      margin-bottom: 12px;
+    }
+    .welcome-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.42rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+    .welcome-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0 auto 18px;
+      line-height: 1.55;
+    }
+    .prompt-suggestions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+      gap: 10px;
+      text-align: left;
+    }
+    .prompt-chip {
+      padding: 12px 14px;
+      border-radius: 13px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-surface);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .prompt-chip:hover {
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+      background: var(--glass-surface-hover);
+      box-shadow: var(--shadow-glow);
+    }
+    .prompt-chip-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      color: var(--accent-cyan);
+    }
+    .prompt-chip-text {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.38;
+    }
+
+    /* Message Bubbles */
+    .message-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      animation: fadeSlideUp 0.24s ease-out;
+    }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message-row.user {
+      flex-direction: row-reverse;
+    }
+
+    .msg-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: 700;
+      font-size: 0.8rem;
+      border: 1px solid var(--glass-border);
+    }
+    .message-row.user .msg-avatar {
+      background: var(--primary-gradient);
+      color: #ffffff;
+    }
+    .message-row.assistant .msg-avatar {
+      background: var(--glass-surface-elevated);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+
+    .msg-card {
+      max-width: min(86%, 760px);
+      border-radius: 16px;
+      padding: 14px 16px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 26px rgba(2, 6, 23, 0.18);
+      position: relative;
+      min-width: 140px;
+    }
+    .message-row.user .msg-card {
+      background: var(--user-msg-bg);
+      border-color: rgba(56, 189, 248, 0.32);
+      border-top-right-radius: 4px;
+    }
+    .message-row.assistant .msg-card {
+      background: var(--ai-msg-bg);
+      backdrop-filter: blur(16px);
+      border-top-left-radius: 4px;
+    }
+
+    .msg-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .msg-sender {
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Markdown Content Styling */
+    .msg-content {
+      font-size: 0.9rem;
+      line-height: 1.62;
+      color: var(--text-primary);
+      word-wrap: break-word;
+    }
+    .msg-content p {
+      margin-bottom: 10px;
+    }
+    .msg-content p:last-child {
+      margin-bottom: 0;
+    }
+    .msg-content h1,
+    .msg-content h2,
+    .msg-content h3,
+    .msg-content h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 14px 0 8px;
+      line-height: 1.3;
+      color: var(--text-primary);
+    }
+    .msg-content h1 { font-size: 1.2rem; }
+    .msg-content h2 { font-size: 1.08rem; }
+    .msg-content h3 { font-size: 0.98rem; }
+    .msg-content ul,
+    .msg-content ol {
+      margin: 8px 0 12px 20px;
+    }
+    .msg-content li {
+      margin-bottom: 4px;
+    }
+    .msg-content blockquote {
+      border-left: 3px solid var(--accent-cyan);
+      padding: 6px 12px;
+      margin: 10px 0;
+      background: rgba(56, 189, 248, 0.08);
+      border-radius: 0 8px 8px 0;
+      color: var(--text-secondary);
+    }
+    .msg-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.81rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(148, 163, 184, 0.16);
+      color: var(--accent-cyan);
+    }
+    .msg-content pre {
+      margin: 12px 0;
+      border-radius: 12px;
+      background: var(--code-bg);
+      border: 1px solid var(--glass-border);
+      overflow: hidden;
+    }
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+    .code-copy-btn {
+      background: transparent;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.69rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .code-copy-btn:hover {
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .msg-content pre code {
+      display: block;
+      padding: 12px 14px;
+      overflow-x: auto;
+      background: transparent;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+    .msg-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.83rem;
+    }
+    .msg-content th,
+    .msg-content td {
+      border: 1px solid var(--glass-border);
+      padding: 7px 10px;
+      text-align: left;
+    }
+    .msg-content th {
+      background: rgba(56, 189, 248, 0.1);
+      font-weight: 600;
+    }
+    .msg-content a {
+      color: var(--accent-cyan);
+      text-decoration: underline;
+    }
+
+    /* Streaming Cursor Indicator */
+    .streaming-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      background: var(--accent-cyan);
+      vertical-align: middle;
+      margin-left: 4px;
+      border-radius: 2px;
+      animation: blinkCursor 0.8s infinite;
+      box-shadow: 0 0 8px var(--accent-cyan);
+    }
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.15; }
+    }
+
+    .msg-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--glass-border);
+    }
+    .msg-action-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.18s ease;
+    }
+    .msg-action-btn:hover {
+      color: var(--text-primary);
+      background: var(--glass-surface-hover);
+      border-color: var(--glass-border);
+    }
+
+    /* Error Callout Box Inside Chat */
+    .error-banner {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.38);
+      color: var(--text-primary);
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .error-banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-small-action {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--glass-border-strong);
+      background: var(--glass-surface-elevated);
+      color: var(--text-primary);
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .btn-small-action:hover {
+      border-color: var(--accent-cyan);
+      background: var(--glass-surface-hover);
+    }
+
+    /* Composer Area */
+    .composer-wrapper {
+      padding: 12px 20px 18px;
+      border-top: 1px solid var(--glass-border);
+      background: var(--glass-surface);
+      flex-shrink: 0;
+    }
+
+    .stop-generation-bar {
+      display: none;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .stop-generation-bar.visible {
+      display: flex;
+    }
+    .btn-stop-stream {
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(244, 63, 94, 0.55);
+      background: rgba(244, 63, 94, 0.16);
+      color: var(--text-primary);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
+    }
+    .btn-stop-stream:hover {
+      background: rgba(244, 63, 94, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .composer-box {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-surface-elevated);
+      box-shadow: var(--shadow-glass);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .composer-box:focus-within {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16), var(--shadow-glass);
+    }
+
+    .chat-textarea {
+      flex: 1;
+      max-height: 150px;
+      min-height: 24px;
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      padding: 4px 2px;
+    }
+    .chat-textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .btn-send {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: none;
+      background: var(--primary-gradient);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.22s ease;
+      box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+    }
+    .btn-send:hover:not(:disabled) {
+      transform: translateY(-1px) scale(1.03);
+      box-shadow: 0 6px 22px rgba(56, 189, 248, 0.5);
+    }
+    .btn-send:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .composer-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.71rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .endpoint-indicator {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+    }
+
+    /* Toast Notification Stack */
+    .toast-stack {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast-item {
+      pointer-events: auto;
+      padding: 11px 15px;
+      border-radius: 12px;
+      background: var(--glass-surface-elevated);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--glass-border-strong);
+      color: var(--text-primary);
+      font-size: 0.81rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      box-shadow: var(--shadow-glass);
+      animation: fadeSlideUp 0.22s ease-out;
+    }
+
+    /* Health & API Diagnostics Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.65);
+      backdrop-filter: blur(8px);
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 540px;
+      border-radius: 20px;
+      padding: 22px;
+      background: var(--glass-surface-elevated);
+      border: 1px solid var(--glass-border-strong);
+      box-shadow: var(--shadow-glass);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .modal-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .diag-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .diag-box {
+      padding: 11px 13px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-surface);
+    }
+    .diag-label {
+      font-size: 0.69rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .diag-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.83rem;
+      font-weight: 600;
+      margin-top: 4px;
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1080px) {
+      .workspace-body {
+        grid-template-columns: 1fr;
+        grid-template-rows: 300px 1fr;
+      }
+      .workspace-body.layout-chat-focus {
+        grid-template-columns: 1fr;
+        grid-template-rows: 0px 1fr;
+      }
+      .workspace-body.layout-neural-focus {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 0px;
+      }
+      .neural-stage-column {
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+      }
+      .agent-cards-grid {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .agent-card-3d {
+        min-width: 155px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 295px;
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.6);
+      }
+      .app-shell.sidebar-collapsed .sidebar {
+        transform: translateX(-105%);
+      }
+      .topbar {
+        padding: 0 12px;
+      }
+      .messages-container {
+        padding: 16px 14px;
+      }
+      .msg-card {
+        max-width: 92%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Decorative Orbital Rings -->
+  <div class="ambient-orbit-container" aria-hidden="true">
+    <div class="ambient-ring ring-1"></div>
+    <div class="ambient-ring ring-2"></div>
+    <div class="ambient-ring ring-3"></div>
+  </div>
+
+  <div class="app-shell" id="appShell">
+    <!-- Left Sidebar -->
+    <aside class="sidebar glass-panel" id="sidebar" aria-label="ResearchDesk Sessions and Agent Roster">
+      <div class="sidebar-header">
+        <div class="brand-lockup">
+          <div class="brand-orb">
+            <i data-lucide="cpu"></i>
+          </div>
+          <div>
+            <div class="brand-title">ResearchDesk</div>
+            <div class="brand-subtitle">Agno · 5-Agent AI Team</div>
+          </div>
+        </div>
+        <button class="icon-btn" id="closeSidebarBtn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+          <i data-lucide="panel-left-close"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-actions">
+        <button class="btn-new-chat" id="newChatBtn">
+          <i data-lucide="plus-circle"></i>
+          <span>New Research Session</span>
+        </button>
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input type="text" class="search-input" id="historySearchInput" placeholder="Filter saved sessions..." aria-label="Filter saved sessions" />
+        </div>
+      </div>
+
+      <div class="sidebar-section-label">
+        <span>Session History</span>
+        <button class="msg-action-btn" id="clearHistoryBtn" title="Clear all saved sessions">
+          <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+          <span>Clear</span>
+        </button>
+      </div>
+
+      <div class="history-list" id="historyList" role="list"></div>
+
+      <div class="sidebar-section-label">
+        <span>Research Team Agents (5)</span>
+        <span id="activeAgentCountBadge">gemma4:31b</span>
+      </div>
+
+      <div class="sidebar-agents" id="sidebarAgentList"></div>
+
+      <div class="sidebar-footer">
+        <span id="storageStatusText">localStorage: Ready</span>
+        <button class="msg-action-btn" id="exportChatBtn" title="Export current chat as Markdown">
+          <i data-lucide="download" style="width:14px;height:14px;"></i>
+          <span>Export .MD</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Stage -->
+    <main class="main-stage">
+      <!-- Topbar -->
+      <header class="topbar glass-panel">
+        <div class="topbar-left">
+          <button class="icon-btn" id="openSidebarBtn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+            <i data-lucide="menu"></i>
+          </button>
+
+          <!-- View Layout Switcher -->
+          <div class="segmented-control" role="group" aria-label="Workspace View Mode">
+            <button class="segment-btn active" id="viewSplitBtn" data-layout="split" title="Split 3D + Chat View">
+              <i data-lucide="columns" style="width:14px;height:14px;"></i>
+              <span>Split</span>
+            </button>
+            <button class="segment-btn" id="viewNeuralBtn" data-layout="neural" title="Full 3D Neural Network View">
+              <i data-lucide="orbit" style="width:14px;height:14px;"></i>
+              <span>3D Team</span>
+            </button>
+            <button class="segment-btn" id="viewChatBtn" data-layout="chat" title="Full Chat View">
+              <i data-lucide="message-square" style="width:14px;height:14px;"></i>
+              <span>Chat</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- API Delivery Mode (Stream vs Standard POST) -->
+          <div class="segmented-control" role="group" aria-label="API Endpoint Mode">
+            <button class="segment-btn active" id="modeStreamBtn" title="POST /api/chat/stream (Plain-Text Stream)">
+              <i data-lucide="zap" style="width:13px;height:13px;"></i>
+              <span>Stream</span>
+            </button>
+            <button class="segment-btn" id="modeStandardBtn" title="POST /api/chat (JSON Reply)">
+              <i data-lucide="send" style="width:13px;height:13px;"></i>
+              <span>POST</span>
+            </button>
+          </div>
+
+          <!-- Backend Health Pill -->
+          <button class="health-pill" id="healthPillBtn" title="Click to inspect Flask backend health & diagnostics">
+            <span class="status-led" id="healthLed"></span>
+            <span id="healthText">Checking API...</span>
+          </button>
+
+          <!-- Reduced Motion Button -->
+          <button class="icon-btn" id="motionToggleBtn" title="Toggle Reduced Motion" aria-label="Toggle Reduced Motion">
+            <i data-lucide="sparkles"></i>
+          </button>
+
+          <!-- Theme Switcher -->
+          <button class="icon-btn" id="themeToggleBtn" title="Switch Dark / Light Theme" aria-label="Switch Theme">
+            <i data-lucide="sun" id="themeIcon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Split Workspace Body -->
+      <div class="workspace-body" id="workspaceBody">
+        <!-- Left Column: Three.js 3D Neural Network Visualization -->
+        <section class="neural-stage-column" aria-label="3D Multi-Agent Neural Visualization">
+          <div class="canvas-container" id="canvasContainer">
+            <canvas id="neuralCanvas" aria-label="Interactive 3D representation of the Research Team coordinator and its five specialized agents"></canvas>
+
+            <!-- Simplified Visual Fallback when WebGL is unavailable or disabled -->
+            <div class="webgl-fallback" id="webglFallback">
+              <svg class="fallback-svg" viewBox="0 0 260 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="130" cy="130" r="95" stroke="rgba(56,189,248,0.28)" stroke-width="1.5" stroke-dasharray="6 6" />
+                <circle cx="130" cy="130" r="62" stroke="rgba(168,85,247,0.32)" stroke-width="1.5" />
+                <line x1="130" y1="130" x2="130" y2="35" stroke="#38bdf8" stroke-width="2" />
+                <line x1="130" y1="130" x2="220" y2="100" stroke="#a855f7" stroke-width="2" />
+                <line x1="130" y1="130" x2="186" y2="207" stroke="#10b981" stroke-width="2" />
+                <line x1="130" y1="130" x2="74" y2="207" stroke="#f43f5e" stroke-width="2" />
+                <line x1="130" y1="130" x2="40" y2="100" stroke="#f59e0b" stroke-width="2" />
+                <circle cx="130" cy="130" r="22" fill="url(#coreGrad)" />
+                <circle cx="130" cy="35" r="11" fill="#38bdf8" />
+                <circle cx="220" cy="100" r="11" fill="#a855f7" />
+                <circle cx="186" cy="207" r="11" fill="#10b981" />
+                <circle cx="74" cy="207" r="11" fill="#f43f5e" />
+                <circle cx="40" cy="100" r="11" fill="#f59e0b" />
+                <defs>
+                  <radialGradient id="coreGrad">
+                    <stop offset="0%" stop-color="#38bdf8" />
+                    <stop offset="100%" stop-color="#6366f1" />
+                  </radialGradient>
+                </defs>
+              </svg>
+              <div class="hud-badge-title">2D Research Team Topology Fallback</div>
+              <p class="hud-badge-sub">Simplified visual mode is active (WebGL unavailable or toggled). All 5 ResearchDesk agents remain interactive below.</p>
+            </div>
+          </div>
+
+          <!-- Top HUD inside 3D Viewport -->
+          <div class="neural-hud-top">
+            <div class="hud-badge glass-panel">
+              <div class="hud-badge-title">
+                <i data-lucide="network" style="width:16px;height:16px;color:var(--accent-cyan);"></i>
+                <span id="hudSelectedTitle">Research Team Coordinator</span>
+              </div>
+              <div class="hud-badge-sub" id="hudSelectedDesc">
+                Delegates queries across Search Agent, Web Researcher, Finance Agent, YouTube Agent, and Browser Agent, combining member outputs with sources.
+              </div>
+              <span class="hud-model-tag" id="hudModelBadge">Coordinator: gpt-oss:120b · Members: gemma4:31b-cloud</span>
+            </div>
+
+            <div class="hud-controls">
+              <button class="icon-btn" id="resetCameraBtn" title="Reset 3D Camera Orbit" aria-label="Reset 3D Camera Orbit">
+                <i data-lucide="compass"></i>
+              </button>
+              <button class="icon-btn" id="pulseTestBtn" title="Trigger Neural Synaptic Pulse" aria-label="Trigger Neural Synaptic Pulse">
+                <i data-lucide="activity"></i>
+              </button>
+              <button class="icon-btn" id="toggleFallbackBtn" title="Switch 3D WebGL / Simplified Fallback" aria-label="Switch 3D WebGL or Fallback">
+                <i data-lucide="layers"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Interactive 3D Agent Cards -->
+          <div class="neural-hud-bottom">
+            <div class="agent-cards-header">
+              <span>Research Team // 5 Specialized Agno Agents</span>
+              <span id="neuralFpsCounter">Asia/Kolkata Context</span>
+            </div>
+            <div class="agent-cards-grid" id="agentCardsGrid"></div>
+          </div>
+        </section>
+
+        <!-- Right Column: Multi-Agent Chat Interface -->
+        <section class="chat-column" aria-label="ResearchDesk Conversation">
+          <div class="chat-subbar">
+            <div class="active-agent-indicator">
+              <span style="color:var(--text-muted);">Delegation Target:</span>
+              <span class="agent-pill-selector" id="activeAgentBadge">
+                <i data-lucide="sparkles" style="width:13px;height:13px;"></i>
+                <span id="activeAgentNameText">Research Team (Auto-Coordinator)</span>
+              </span>
+              <button class="msg-action-btn" id="resetAgentFilterBtn" style="display:none;">
+                <i data-lucide="rotate-ccw" style="width:12px;height:12px;"></i>
+                <span>Reset to Coordinator</span>
+              </button>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="msg-action-btn" id="pingHealthQuickBtn" title="Ping GET /api/health">
+                <i data-lucide="heart-pulse" style="width:14px;height:14px;"></i>
+                <span>Check Health</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Messages Stream -->
+          <div class="messages-container" id="messagesContainer" aria-live="polite"></div>
+
+          <!-- Composer -->
+          <div class="composer-wrapper">
+            <div class="stop-generation-bar" id="stopGenerationBar">
+              <button class="btn-stop-stream" id="stopStreamBtn" type="button">
+                <i data-lucide="square" style="width:14px;height:14px;fill:currentColor;"></i>
+                <span>Stop Generation (AbortController)</span>
+              </button>
+            </div>
+
+            <form id="chatForm" class="composer-box">
+              <textarea
+                id="chatInput"
+                class="chat-textarea"
+                rows="1"
+                placeholder="Ask ResearchDesk about stocks (YFinance), YouTube videos, web news (DuckDuckGo), deep URL extraction, or opening a page..."
+                aria-label="Research prompt input"
+              ></textarea>
+              <button type="submit" class="btn-send" id="sendBtn" title="Send research query (Enter)" aria-label="Send query">
+                <i data-lucide="arrow-up-right"></i>
+              </button>
+            </form>
+
+            <div class="composer-footer">
+              <span><strong>Enter</strong> to send · <strong>Shift + Enter</strong> for new line</span>
+              <span class="endpoint-indicator" id="activeEndpointLabel">POST http://127.0.0.1:5000/api/chat/stream</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Backend Diagnostics Modal -->
+  <div class="modal-backdrop" id="diagnosticsModal" role="dialog" aria-modal="true" aria-labelledby="diagModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="diagModalTitle">
+          <i data-lucide="server" style="color:var(--accent-cyan);"></i>
+          <span>ResearchDesk Flask Backend Diagnostics</span>
+        </div>
+        <button class="icon-btn" id="closeModalBtn" aria-label="Close modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="diag-grid">
+        <div class="diag-box">
+          <div class="diag-label">API_BASE_URL</div>
+          <div class="diag-value" id="diagBaseUrl">http://127.0.0.1:5000</div>
+        </div>
+        <div class="diag-box">
+          <div class="diag-label">Health Status</div>
+          <div class="diag-value" id="diagHealthStatus">Checking...</div>
+        </div>
+        <div class="diag-box">
+          <div class="diag-label">Last Ping Latency</div>
+          <div class="diag-value" id="diagLatency">-- ms</div>
+        </div>
+        <div class="diag-box">
+          <div class="diag-label">Active Chat Endpoint</div>
+          <div class="diag-value" id="diagActiveMode">POST /api/chat/stream</div>
+        </div>
+      </div>
+
+      <div class="diag-box" style="margin-bottom:14px;">
+        <div class="diag-label">Backend Architecture (backend/main.py &amp; backend/teams/research_team.py)</div>
+        <div class="diag-value" style="font-size:0.75rem;line-height:1.6;margin-top:6px;">
+          • Coordinator: Research Team (Ollama <code>gpt-oss:120b</code>)<br/>
+          • Members (<code>gemma4:31b-cloud</code>): Search Agent, Web Researcher, Finance Agent, YouTube Agent, Browser Agent<br/>
+          • Endpoints: <code>GET /api/health</code>, <code>POST /api/chat</code>, <code>POST /api/chat/stream</code>
+        </div>
+      </div>
+
+      <div class="diag-box" style="margin-bottom:16px;">
+        <div class="diag-label">Last GET /api/health Response</div>
+        <div class="diag-value" id="diagRawPayload" style="font-size:0.75rem;color:var(--text-secondary);">No response captured yet.</div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button class="btn-small-action" id="runHealthCheckModalBtn">
+          <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i>
+          <span>Ping GET /api/health Now</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Stack -->
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <script>
+    /*************************************************************************
+     * 1. API CONFIGURATION & EXACT PROJECT CONSTANTS
+     *************************************************************************/
+    const API_BASE_URL = "http://127.0.0.1:5000";
+    const API_ENDPOINTS = {
+      HEALTH: `${API_BASE_URL}/api/health`,
+      CHAT: `${API_BASE_URL}/api/chat`,
+      CHAT_STREAM: `${API_BASE_URL}/api/chat/stream`
+    };
+
+    const STORAGE_KEYS = {
+      SESSIONS: "researchdesk_sessions_v1",
+      ACTIVE_SESSION: "researchdesk_active_session_v1",
+      THEME: "researchdesk_theme_v1",
+      REDUCED_MOTION: "researchdesk_reduced_motion_v1"
+    };
+
+    // The exact 5 specialized agents from backend/agents/*.py & backend/teams/research_team.py
+    const RESEARCH_AGENTS = [
+      {
+        id: "search_agent",
+        name: "Search Agent",
+        shortName: "Search Agent",
+        toolLabel: "DuckDuckGoTools",
+        model: "gemma4:31b-cloud",
+        color: "#38bdf8",
+        hex: 0x38bdf8,
+        icon: "search",
+        description: "Finds current information, news, and general facts on the web via DuckDuckGo search (Asia/Kolkata datetime context) with source URLs.",
+        orbitRadius: 3.1,
+        orbitSpeed: 0.54,
+        phase: 0
+      },
+      {
+        id: "web_researcher",
+        name: "Web Researcher",
+        shortName: "Web Researcher",
+        toolLabel: "WebsiteTools",
+        model: "gemma4:31b-cloud",
+        color: "#a855f7",
+        hex: 0xa855f7,
+        icon: "globe",
+        description: "Discovers and extracts deep content from legitimate web page URLs using WebSearchTools + WebsiteTools and summarizes findings.",
+        orbitRadius: 3.5,
+        orbitSpeed: 0.44,
+        phase: (Math.PI * 2) / 5
+      },
+      {
+        id: "finance_agent",
+        name: "Finance Agent",
+        shortName: "Finance Agent",
+        toolLabel: "YFinanceTools",
+        model: "gemma4:31b-cloud",
+        color: "#10b981",
+        hex: 0x10b981,
+        icon: "trending-up",
+        description: "Resolves ticker symbols and provides stock prices, market cap, P/E ratios, fundamentals, and analyst tables via YFinanceTools.",
+        orbitRadius: 3.25,
+        orbitSpeed: 0.49,
+        phase: (Math.PI * 4) / 5
+      },
+      {
+        id: "youtube_agent",
+        name: "YouTube Agent",
+        shortName: "YouTube Agent",
+        toolLabel: "YouTubeTools",
+        model: "gemma4:31b-cloud",
+        color: "#f43f5e",
+        hex: 0xf43f5e,
+        icon: "youtube",
+        description: "Fetches video metadata, captions, and transcripts from YouTube URLs and summarizes key points with approximate timestamps.",
+        orbitRadius: 3.6,
+        orbitSpeed: 0.39,
+        phase: (Math.PI * 6) / 5
+      },
+      {
+        id: "browser_agent",
+        name: "Browser Agent",
+        shortName: "Browser Agent",
+        toolLabel: "WebBrowserTools",
+        model: "gemma4:31b-cloud",
+        color: "#f59e0b",
+        hex: 0xf59e0b,
+        icon: "external-link",
+        description: "Opens requested web pages directly in the user's browser via WebBrowserTools and confirms the exact URL opened.",
+        orbitRadius: 3.35,
+        orbitSpeed: 0.46,
+        phase: (Math.PI * 8) / 5
+      }
+    ];
+
+    // Starter prompts directly aligned with the __main__ examples in backend/teams/research_team.py and backend/agents/*.py
+    const STARTER_PROMPTS = [
+      {
+        title: "NVIDIA News + Stock Overview",
+        agent: "finance_agent",
+        badge: "Search + Finance",
+        prompt: "Find the latest news on NVIDIA and give me its current stock overview."
+      },
+      {
+        title: "Stock Fundamentals & Valuation",
+        agent: "finance_agent",
+        badge: "YFinanceTools",
+        prompt: "What's NVIDIA's current stock price? Cover price, market cap, P/E, and recent trend in a table."
+      },
+      {
+        title: "Deep Web Research on RAG",
+        agent: "web_researcher",
+        badge: "WebsiteTools",
+        prompt: "Make a quick research on Retrieval-Augmented Generation (RAG) and include authoritative source URLs."
+      },
+      {
+        title: "YouTube Video Transcript Summary",
+        agent: "youtube_agent",
+        badge: "YouTubeTools",
+        prompt: "Summarize this video with key points and timestamps: https://www.youtube.com/watch?v=aircAruvnKk"
+      }
+    ];
+
+    /*************************************************************************
+     * 2. APPLICATION STATE
+     *************************************************************************/
+    const state = {
+      sessions: [],
+      activeSessionId: null,
+      selectedAgentId: null,     // null = Research Team Auto-Coordinator
+      delegatedAgentIds: [],     // Dynamically highlighted agents during query routing
+      useStreaming: true,        // true -> POST /api/chat/stream, false -> POST /api/chat
+      isGenerating: false,
+      abortController: null,
+      backendOnline: null,
+      lastHealthPingMs: null,
+      lastHealthPayload: null,
+      theme: "dark",
+      reducedMotion: false,
+      useWebGLFallback: false,
+      searchQuery: ""
+    };
+
+    /*************************************************************************
+     * 3. SAFE LOCALSTORAGE UTILITIES
+     *************************************************************************/
+    function safeStorageGet(key, fallback = null) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_) {
+        return fallback;
+      }
+    }
+
+    function safeStorageSet(key, value) {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    /*************************************************************************
+     * 4. SMART QUERY INTENT ROUTING (Matches research_team.py instructions)
+     *************************************************************************/
+    function detectDelegatedAgents(queryText) {
+      const q = String(queryText || "").toLowerCase();
+      const matched = new Set();
+
+      if (/(stock|ticker|market cap|p\/e|shares|nasdaq|nyse|price|yfinance|fundamentals|nvda|aapl|msft|tsla|googl|earnings|financial)/i.test(q)) {
+        matched.add("finance_agent");
+      }
+      if (/(youtube\.com|youtu\.be|youtube|video|transcript|captions|timestamp)/i.test(q)) {
+        matched.add("youtube_agent");
+      }
+      if (/\b(open|launch|visit)\b.*(browser|page|site|url|http|youtube|google|\.com|\.org)/i.test(q)) {
+        matched.add("browser_agent");
+      }
+      if (/(news|latest|search|current|today|research|read|extract|article|url|http|rag|overview|what|who|why|how)/i.test(q) || matched.size === 0) {
+        matched.add("search_agent");
+        matched.add("web_researcher");
+      }
+
+      if (state.selectedAgentId) {
+        matched.add(state.selectedAgentId);
+      }
+      return Array.from(matched);
+    }
+
+    /*************************************************************************
+     * 5. BACKEND API FUNCTIONS (GET /api/health, POST /api/chat, POST /api/chat/stream)
+     *************************************************************************/
+    async function checkBackendHealth(showNotification = false) {
+      const led = document.getElementById("healthLed");
+      const text = document.getElementById("healthText");
+      const diagStatus = document.getElementById("diagHealthStatus");
+      const diagLatency = document.getElementById("diagLatency");
+      const diagPayload = document.getElementById("diagRawPayload");
+
+      const startTime = performance.now();
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+        const response = await fetch(API_ENDPOINTS.HEALTH, {
+          method: "GET",
+          headers: { "Accept": "application/json" },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const elapsed = Math.round(performance.now() - startTime);
+        state.lastHealthPingMs = elapsed;
+
+        const rawText = await response.text();
+        state.lastHealthPayload = rawText || `HTTP ${response.status}`;
+
+        if (response.ok) {
+          state.backendOnline = true;
+          led.className = "status-led online";
+          text.textContent = `Backend Online (${elapsed}ms)`;
+          diagStatus.textContent = `ONLINE (status: ok)`;
+          diagStatus.style.color = "var(--accent-emerald)";
+          diagLatency.textContent = `${elapsed} ms`;
+          diagPayload.textContent = state.lastHealthPayload.slice(0, 300);
+          if (showNotification) {
+            showToast(`Flask backend healthy (${elapsed}ms)`, "check-circle-2");
+          }
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (err) {
+        state.backendOnline = false;
+        led.className = "status-led offline";
+        text.textContent = "Backend Offline (127.0.0.1:5000)";
+        diagStatus.textContent = "OFFLINE / UNREACHABLE";
+        diagStatus.style.color = "var(--accent-rose)";
+        diagLatency.textContent = "Unreachable";
+        diagPayload.textContent = `Could not reach ${API_ENDPOINTS.HEALTH} (${err.message || "Network Error"}). Start Flask via: python -m backend.main`;
+        if (showNotification) {
+          showToast("Flask backend unreachable at http://127.0.0.1:5000", "alert-triangle");
+        }
+      }
+    }
+
+    /**
+     * Streams plain-text AI responses from POST /api/chat/stream using:
+     * - fetch()
+     * - response.body.getReader()
+     * - TextDecoder
+     * - AbortController
+     * Matches backend/main.py: expects {"message": "..."} and streams mimetype="text/plain"
+     */
+    async function streamChatFromBackend(messageText, signal, onChunk) {
+      const response = await fetch(API_ENDPOINTS.CHAT_STREAM, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "text/plain, application/json"
+        },
+        body: JSON.stringify({ message: messageText }),
+        signal: signal
+      });
+
+      if (!response.ok) {
+        let errorDetail = response.statusText;
+        try {
+          const errJson = await response.json();
+          if (errJson && errJson.error) errorDetail = errJson.error;
+        } catch (_) {
+          const errText = await response.text().catch(() => "");
+          if (errText) errorDetail = errText;
+        }
+        throw new Error(`HTTP ${response.status}: ${errorDetail}`);
+      }
+
+      if (!response.body) {
+        const fallbackText = await response.text();
+        onChunk(fallbackText);
+        return fallbackText;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let accumulatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        // Decode plain text chunk directly (not Server-Sent Events)
+        const chunkText = decoder.decode(value, { stream: true });
+        if (chunkText) {
+          accumulatedText += chunkText;
+          onChunk(accumulatedText, chunkText);
+        }
+      }
+
+      const trailing = decoder.decode();
+      if (trailing) {
+        accumulatedText += trailing;
+        onChunk(accumulatedText, trailing);
+      }
+
+      return accumulatedText;
+    }
+
+    /**
+     * Standard non-streaming request to POST /api/chat
+     * Matches backend/main.py: expects {"message": "..."} and returns {"reply": result.content}
+     */
+    async function postChatToBackend(messageText, signal) {
+      const response = await fetch(API_ENDPOINTS.CHAT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ message: messageText }),
+        signal: signal
+      });
+
+      const rawText = await response.text();
+      let parsed = null;
+      try {
+        parsed = JSON.parse(rawText);
+      } catch (_) {
+        parsed = null;
+      }
+
+      if (!response.ok) {
+        const errMsg = (parsed && parsed.error) ? parsed.error : (rawText || response.statusText);
+        throw new Error(`HTTP ${response.status}: ${errMsg}`);
+      }
+
+      if (parsed && typeof parsed.reply === "string") {
+        return parsed.reply;
+      }
+      return rawText;
+    }
+
+    /*************************************************************************
+     * 6. MARKDOWN RENDERER & CODE COPY HANDLER
+     *************************************************************************/
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderMarkdown(mdText) {
+      if (!mdText) return "";
+
+      // Extract fenced code blocks first
+      const codeBlocks = [];
+      let processed = String(mdText).replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
+        const index = codeBlocks.length;
+        const cleanLang = (lang || "text").trim();
+        const encodedCode = encodeURIComponent(code.replace(/\n$/, ""));
+        codeBlocks.push(
+          `<pre><div class="code-block-header"><span>${escapeHtml(cleanLang)}</span>` +
+          `<button type="button" class="code-copy-btn" data-copy-code="${encodedCode}">` +
+          `Copy Code</button></div><code>${escapeHtml(code.replace(/\n$/, ""))}</code></pre>`
+        );
+        return `@@CODE_BLOCK_${index}@@`;
+      });
+
+      processed = escapeHtml(processed);
+
+      // Inline code
+      processed = processed.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+
+      // Headings
+      processed = processed.replace(/^####\s+(.*)$/gm, "<h4>$1</h4>");
+      processed = processed.replace(/^###\s+(.*)$/gm, "<h3>$1</h3>");
+      processed = processed.replace(/^##\s+(.*)$/gm, "<h2>$1</h2>");
+      processed = processed.replace(/^#\s+(.*)$/gm, "<h1>$1</h1>");
+
+      // Blockquotes
+      processed = processed.replace(/^&gt;\s+(.*)$/gm, "<blockquote>$1</blockquote>");
+
+      // Bold & Italic
+      processed = processed.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      processed = processed.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+
+      // Markdown Links [text](url)
+      processed = processed.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+      // Pipe Tables
+      processed = processed.replace(
+        /^(\|.+\|)\n(\|[-:\s|]+\|)\n((?:\|.+\|\n?)+)/gm,
+        (_, headerRow, sepRow, bodyRows) => {
+          const headers = headerRow.split("|").slice(1, -1).map(c => `<th>${c.trim()}</th>`).join("");
+          const rows = bodyRows.trim().split("\n").map(r => {
+            const cells = r.split("|").slice(1, -1).map(c => `<td>${c.trim()}</td>`).join("");
+            return `<tr>${cells}</tr>`;
+          }).join("");
+          return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+        }
+      );
+
+      // Unordered lists
+      processed = processed.replace(/^(?:[-*]\s+.+\n?)+/gm, match => {
+        const items = match.trim().split("\n").map(line => `<li>${line.replace(/^[-*]\s+/, "")}</li>`).join("");
+        return `<ul>${items}</ul>`;
+      });
+
+      // Ordered lists
+      processed = processed.replace(/^(?:\d+\.\s+.+\n?)+/gm, match => {
+        const items = match.trim().split("\n").map(line => `<li>${line.replace(/^\d+\.\s+/, "")}</li>`).join("");
+        return `<ol>${items}</ol>`;
+      });
+
+      // Paragraphs
+      const blocks = processed.split(/\n{2,}/);
+      processed = blocks.map(b => {
+        const trimmed = b.trim();
+        if (!trimmed) return "";
+        if (/^(<h[1-4]|<ul|<ol|<pre|<table|<blockquote|@@CODE_BLOCK_)/.test(trimmed)) {
+          return trimmed;
+        }
+        return `<p>${trimmed.replace(/\n/g, "<br/>")}</p>`;
+      }).join("\n");
+
+      // Restore code blocks
+      codeBlocks.forEach((html, idx) => {
+        processed = processed.replace(`@@CODE_BLOCK_${idx}@@`, html);
+      });
+
+      return processed;
+    }
+
+    /*************************************************************************
+     * 7. CLIPBOARD & TOAST HELPERS
+     *************************************************************************/
+    async function copyTextToClipboard(text, label = "Copied to clipboard") {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          throw new Error("Clipboard API unavailable");
+        }
+      } catch (_) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      showToast(label, "check");
+    }
+
+    function showToast(message, iconName = "info") {
+      const stack = document.getElementById("toastStack");
+      if (!stack) return;
+      const item = document.createElement("div");
+      item.className = "toast-item";
+      item.innerHTML = `<i data-lucide="${iconName}" style="width:16px;height:16px;color:var(--accent-cyan);flex-shrink:0;"></i><span>${escapeHtml(message)}</span>`;
+      stack.appendChild(item);
+      if (window.lucide) window.lucide.createIcons({ nodes: [item] });
+
+      setTimeout(() => {
+        item.style.opacity = "0";
+        item.style.transform = "translateY(6px)";
+        item.style.transition = "all 0.25s ease";
+        setTimeout(() => item.remove(), 260);
+      }, 3200);
+    }
+
+    /*************************************************************************
+     * 8. SESSION & CHAT HISTORY MANAGEMENT (LOCALSTORAGE)
+     *************************************************************************/
+    function createNewSession(customTitle = "New ResearchDesk Session") {
+      const newSession = {
+        id: "sess_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+        title: customTitle,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        messages: []
+      };
+      state.sessions.unshift(newSession);
+      state.activeSessionId = newSession.id;
+      persistSessions();
+      renderSidebarHistory();
+      renderMessages();
+      return newSession;
+    }
+
+    function getActiveSession() {
+      let current = state.sessions.find(s => s.id === state.activeSessionId);
+      if (!current) {
+        current = state.sessions[0] || createNewSession();
+        state.activeSessionId = current.id;
+      }
+      return current;
+    }
+
+    function persistSessions() {
+      const ok = safeStorageSet(STORAGE_KEYS.SESSIONS, state.sessions);
+      safeStorageSet(STORAGE_KEYS.ACTIVE_SESSION, state.activeSessionId);
+      const statusEl = document.getElementById("storageStatusText");
+      if (statusEl) {
+        statusEl.textContent = ok
+          ? `Saved (${state.sessions.length} session${state.sessions.length === 1 ? "" : "s"})`
+          : "In-Memory Mode";
+      }
+    }
+
+    function deleteSession(sessionId, event) {
+      if (event) event.stopPropagation();
+      state.sessions = state.sessions.filter(s => s.id !== sessionId);
+      if (state.sessions.length === 0) {
+        createNewSession();
+      } else if (state.activeSessionId === sessionId) {
+        state.activeSessionId = state.sessions[0].id;
+      }
+      persistSessions();
+      renderSidebarHistory();
+      renderMessages();
+      showToast("Session removed", "trash-2");
+    }
+
+    function clearAllSessions() {
+      state.sessions = [];
+      createNewSession();
+      showToast("Cleared all research history", "trash-2");
+    }
+
+    function renderSidebarHistory() {
+      const listEl = document.getElementById("historyList");
+      if (!listEl) return;
+      const filter = state.searchQuery.trim().toLowerCase();
+
+      const filtered = state.sessions.filter(sess => {
+        if (!filter) return true;
+        const inTitle = sess.title.toLowerCase().includes(filter);
+        const inMsgs = sess.messages.some(m => m.content.toLowerCase().includes(filter));
+        return inTitle || inMsgs;
+      });
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div style="padding:18px 12px;text-align:center;font-size:0.78rem;color:var(--text-muted);">No matching sessions found.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(sess => {
+        const isActive = sess.id === state.activeSessionId;
+        const msgCount = sess.messages.length;
+        const dateLabel = new Date(sess.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return `
+          <div class="history-item ${isActive ? "active" : ""}" data-session-id="${sess.id}" role="listitem">
+            <div class="history-item-main">
+              <i data-lucide="message-square-text" style="width:15px;height:15px;flex-shrink:0;color:var(--accent-cyan);"></i>
+              <div style="min-width:0;flex:1;">
+                <div class="history-item-title">${escapeHtml(sess.title)}</div>
+                <div class="history-item-meta">${msgCount} msg${msgCount === 1 ? "" : "s"} · ${dateLabel}</div>
+              </div>
+            </div>
+            <button type="button" class="history-delete-btn" data-delete-session="${sess.id}" title="Delete session" aria-label="Delete session">
+              <i data-lucide="x" style="width:14px;height:14px;"></i>
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      if (window.lucide) window.lucide.createIcons({ nodes: [listEl] });
+    }
+
+    /*************************************************************************
+     * 9. RENDER AGENTS IN SIDEBAR & 3D TILT CARDS
+     *************************************************************************/
+    function renderAgentControls() {
+      const sidebarList = document.getElementById("sidebarAgentList");
+      const cardsGrid = document.getElementById("agentCardsGrid");
+
+      if (sidebarList) {
+        sidebarList.innerHTML = RESEARCH_AGENTS.map(agent => {
+          const isSelected = state.selectedAgentId === agent.id;
+          return `
+            <div class="mini-agent-row ${isSelected ? "selected" : ""}" data-agent-select="${agent.id}">
+              <div class="mini-agent-left">
+                <span class="agent-dot" style="background:${agent.color};box-shadow:0 0 8px ${agent.color};"></span>
+                <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(agent.name)}</span>
+              </div>
+              <span class="agent-role-badge">${escapeHtml(agent.toolLabel)}</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      if (cardsGrid) {
+        cardsGrid.innerHTML = RESEARCH_AGENTS.map(agent => {
+          const isSelected = state.selectedAgentId === agent.id;
+          const isDelegated = state.isGenerating && state.delegatedAgentIds.includes(agent.id);
+          return `
+            <div class="agent-card-3d ${isSelected || isDelegated ? "active" : ""}"
+                 data-agent-select="${agent.id}"
+                 style="--agent-color:${agent.color}; --agent-glow:${agent.color}44;">
+              <div class="agent-card-top">
+                <div class="agent-card-icon">
+                  <i data-lucide="${agent.icon}" style="width:15px;height:15px;"></i>
+                </div>
+                <span class="agent-status-tag ${isDelegated ? "busy" : ""}">${isDelegated ? "RUNNING" : "READY"}</span>
+              </div>
+              <div class="agent-card-name">${escapeHtml(agent.shortName)}</div>
+              <div class="agent-card-desc">${escapeHtml(agent.toolLabel)}</div>
+            </div>
+          `;
+        }).join("");
+
+        // Attach interactive 3D perspective tilt on mousemove
+        const cards = cardsGrid.querySelectorAll(".agent-card-3d");
+        cards.forEach(card => {
+          card.addEventListener("mousemove", e => {
+            if (state.reducedMotion) return;
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const rotateY = ((x / rect.width) - 0.5) * 18;
+            const rotateX = ((0.5 - (y / rect.height))) * 18;
+            card.style.transform = `perspective(700px) rotateX(${rotateX.toFixed(1)}deg) rotateY(${rotateY.toFixed(1)}deg) translateY(-2px)`;
+          });
+          card.addEventListener("mouseleave", () => {
+            card.style.transform = "";
+          });
+        });
+      }
+
+      // Update HUD and Subbar labels
+      const activeBadgeName = document.getElementById("activeAgentNameText");
+      const resetFilterBtn = document.getElementById("resetAgentFilterBtn");
+      const hudTitle = document.getElementById("hudSelectedTitle");
+      const hudDesc = document.getElementById("hudSelectedDesc");
+      const hudModelBadge = document.getElementById("hudModelBadge");
+
+      if (state.selectedAgentId) {
+        const agent = RESEARCH_AGENTS.find(a => a.id === state.selectedAgentId);
+        if (agent) {
+          if (activeBadgeName) activeBadgeName.textContent = `${agent.name} (${agent.toolLabel})`;
+          if (resetFilterBtn) resetFilterBtn.style.display = "inline-flex";
+          if (hudTitle) hudTitle.textContent = `${agent.name} // ${agent.toolLabel}`;
+          if (hudDesc) hudDesc.textContent = agent.description;
+          if (hudModelBadge) hudModelBadge.textContent = `Model: Ollama ${agent.model} · Tool: ${agent.toolLabel}`;
+        }
+      } else {
+        if (activeBadgeName) activeBadgeName.textContent = "Research Team (Auto-Coordinator)";
+        if (resetFilterBtn) resetFilterBtn.style.display = "none";
+        if (hudTitle) hudTitle.textContent = "Research Team Coordinator";
+        if (hudDesc) {
+          hudDesc.textContent = "Delegates queries across Search Agent, Web Researcher, Finance Agent, YouTube Agent, and Browser Agent, combining member outputs with sources.";
+        }
+        if (hudModelBadge) hudModelBadge.textContent = "Coordinator: gpt-oss:120b · Members: gemma4:31b-cloud";
+      }
+
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function selectAgent(agentId) {
+      state.selectedAgentId = state.selectedAgentId === agentId ? null : agentId;
+      renderAgentControls();
+      triggerNeuralPulse();
+    }
+
+    /*************************************************************************
+     * 10. CHAT MESSAGES RENDERING & STREAMING UI
+     *************************************************************************/
+    function renderMessages() {
+      const container = document.getElementById("messagesContainer");
+      if (!container) return;
+      const session = getActiveSession();
+
+      if (!session.messages || session.messages.length === 0) {
+        container.innerHTML = `
+          <div class="welcome-hero">
+            <div class="welcome-badge">
+              <i data-lucide="orbit" style="width:14px;height:14px;"></i>
+              <span>RESEARCHDESK MULTI-AGENT AI READY</span>
+            </div>
+            <h1 class="welcome-title">Coordinate 5 Specialized Research Agents</h1>
+            <p class="welcome-desc">
+              Powered by your local Flask &amp; Agno backend (<code style="color:var(--accent-cyan);">http://127.0.0.1:5000</code>). The <strong>Research Team</strong> coordinator (<code style="color:var(--accent-cyan);">gpt-oss:120b</code>) delegates tasks to <strong>Search Agent</strong>, <strong>Web Researcher</strong>, <strong>Finance Agent</strong>, <strong>YouTube Agent</strong>, and <strong>Browser Agent</strong>.
+            </p>
+            <div class="prompt-suggestions">
+              ${STARTER_PROMPTS.map((item, idx) => `
+                <button type="button" class="prompt-chip" data-starter-idx="${idx}">
+                  <div class="prompt-chip-title">
+                    <span>${escapeHtml(item.title)}</span>
+                    <span class="agent-role-badge">${escapeHtml(item.badge)}</span>
+                  </div>
+                  <div class="prompt-chip-text">${escapeHtml(item.prompt)}</div>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+        if (window.lucide) window.lucide.createIcons({ nodes: [container] });
+        return;
+      }
+
+      container.innerHTML = session.messages.map(msg => buildMessageHtml(msg)).join("");
+      if (window.lucide) window.lucide.createIcons({ nodes: [container] });
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function buildMessageHtml(msg) {
+      const isUser = msg.role === "user";
+      const agentObj = RESEARCH_AGENTS.find(a => a.id === msg.agentId);
+      const senderLabel = isUser
+        ? "You"
+        : (agentObj ? `Research Team -> ${agentObj.name}` : "Research Team Coordinator");
+
+      const bodyHtml = isUser
+        ? `<p>${escapeHtml(msg.content).replace(/\n/g, "<br/>")}</p>`
+        : renderMarkdown(msg.content) + (msg.streaming ? `<span class="streaming-cursor"></span>` : "");
+
+      const errorHtml = msg.error ? `
+        <div class="error-banner">
+          <div><strong>Flask Backend Notice:</strong> ${escapeHtml(msg.error)}</div>
+          <div class="error-banner-actions">
+            <button type="button" class="btn-small-action" data-retry-msg="${msg.id}">
+              <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+              <span>Retry Flask Request</span>
+            </button>
+            <button type="button" class="btn-small-action" data-simulate-msg="${msg.id}">
+              <i data-lucide="cpu" style="width:13px;height:13px;"></i>
+              <span>Preview Simulated Team Stream</span>
+            </button>
+          </div>
+        </div>
+      ` : "";
+
+      return `
+        <div class="message-row ${isUser ? "user" : "assistant"}" id="msg-row-${msg.id}">
+          <div class="msg-avatar">
+            <i data-lucide="${isUser ? "user" : (agentObj ? agentObj.icon : "bot")}" style="width:17px;height:17px;"></i>
+          </div>
+          <div class="msg-card">
+            <div class="msg-header">
+              <span class="msg-sender">${escapeHtml(senderLabel)}</span>
+              <span>${escapeHtml(msg.timestamp || "")}</span>
+            </div>
+            <div class="msg-content" id="msg-content-${msg.id}">${bodyHtml}</div>
+            ${errorHtml}
+            ${!isUser ? `
+              <div class="msg-actions">
+                <button type="button" class="msg-action-btn" data-copy-msg="${msg.id}" title="Copy response to clipboard">
+                  <i data-lucide="copy" style="width:13px;height:13px;"></i>
+                  <span>Copy Response</span>
+                </button>
+              </div>
+            ` : ""}
+          </div>
+        </div>
+      `;
+    }
+
+    function updateStreamingMessageDOM(msg) {
+      const contentEl = document.getElementById(`msg-content-${msg.id}`);
+      const container = document.getElementById("messagesContainer");
+      if (!contentEl) {
+        renderMessages();
+        return;
+      }
+      contentEl.innerHTML = renderMarkdown(msg.content) + (msg.streaming ? `<span class="streaming-cursor"></span>` : "");
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    /*************************************************************************
+     * 11. SUBMITTING PROMPTS, ABORTCONTROLLER & STREAMING EXECUTION
+     *************************************************************************/
+    async function handleSendPrompt(rawText) {
+      const promptText = String(rawText || "").trim();
+      if (!promptText || state.isGenerating) return;
+
+      const inputEl = document.getElementById("chatInput");
+      if (inputEl) {
+        inputEl.value = "";
+        inputEl.style.height = "auto";
+      }
+
+      const session = getActiveSession();
+      const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+      if (session.messages.length === 0) {
+        session.title = promptText.slice(0, 44) + (promptText.length > 44 ? "..." : "");
+      }
+
+      const userMsg = {
+        id: "m_" + Date.now() + "_u",
+        role: "user",
+        content: promptText,
+        timestamp: nowTime
+      };
+      session.messages.push(userMsg);
+
+      const aiMsg = {
+        id: "m_" + (Date.now() + 1) + "_a",
+        role: "assistant",
+        agentId: state.selectedAgentId,
+        content: "",
+        streaming: true,
+        timestamp: nowTime,
+        promptSource: promptText
+      };
+      session.messages.push(aiMsg);
+      session.updatedAt = new Date().toISOString();
+
+      persistSessions();
+      renderSidebarHistory();
+      renderMessages();
+
+      await executeBackendGeneration(session, aiMsg, promptText);
+    }
+
+    async function executeBackendGeneration(session, aiMsg, promptText) {
+      state.isGenerating = true;
+      state.delegatedAgentIds = detectDelegatedAgents(promptText);
+      state.abortController = new AbortController();
+      setGeneratingUIState(true);
+      triggerNeuralPulse(true);
+
+      // If the user explicitly focused a single agent in the UI, prepend a gentle delegation hint
+      // while preserving the exact {"message": "..."} JSON contract expected by backend/main.py
+      const selectedAgentObj = RESEARCH_AGENTS.find(a => a.id === state.selectedAgentId);
+      const outboundMessage = selectedAgentObj
+        ? `[Delegate to ${selectedAgentObj.name}] ${promptText}`
+        : promptText;
+
+      try {
+        if (state.useStreaming) {
+          await streamChatFromBackend(
+            outboundMessage,
+            state.abortController.signal,
+            (accumulatedText) => {
+              aiMsg.content = accumulatedText;
+              aiMsg.error = null;
+              updateStreamingMessageDOM(aiMsg);
+            }
+          );
+        } else {
+          const fullReply = await postChatToBackend(
+            outboundMessage,
+            state.abortController.signal
+          );
+          aiMsg.content = fullReply;
+          aiMsg.error = null;
+        }
+
+        if (!aiMsg.content.trim()) {
+          aiMsg.content = "_Received empty response from Research Team._";
+        }
+        state.backendOnline = true;
+        const led = document.getElementById("healthLed");
+        const text = document.getElementById("healthText");
+        if (led) led.className = "status-led online";
+        if (text) text.textContent = "Backend Online";
+      } catch (err) {
+        if (err.name === "AbortError") {
+          aiMsg.content = (aiMsg.content ? aiMsg.content + "\n\n" : "") + "> *[Generation stopped by user via AbortController]*";
+          showToast("Generation stopped", "square");
+        } else {
+          aiMsg.error = `Could not reach ${state.useStreaming ? API_ENDPOINTS.CHAT_STREAM : API_ENDPOINTS.CHAT} (${err.message || "Connection refused"}). Start your Flask server on http://127.0.0.1:5000 (python -m backend.main).`;
+          if (!aiMsg.content) {
+            aiMsg.content = "Waiting for local Flask server at `http://127.0.0.1:5000`... Once running, click **Retry Flask Request**, or click **Preview Simulated Team Stream** below to test the live streaming UI and 3D agent choreography.";
+          }
+          state.backendOnline = false;
+          const led = document.getElementById("healthLed");
+          const text = document.getElementById("healthText");
+          if (led) led.className = "status-led offline";
+          if (text) text.textContent = "Backend Offline (127.0.0.1:5000)";
+        }
+      } finally {
+        aiMsg.streaming = false;
+        state.isGenerating = false;
+        state.delegatedAgentIds = [];
+        state.abortController = null;
+        setGeneratingUIState(false);
+        persistSessions();
+        renderMessages();
+      }
+    }
+
+    /**
+     * Optional on-demand local simulation stream if user clicks "Preview Simulated Team Stream"
+     * when previewing the frontend in Canvas before starting the local Flask server.
+     */
+    async function runSimulatedStreamForMessage(msgId) {
+      if (state.isGenerating) return;
+      const session = getActiveSession();
+      const targetMsg = session.messages.find(m => m.id === msgId);
+      if (!targetMsg) return;
+
+      const query = targetMsg.promptSource || "ResearchDesk Multi-Agent Query";
+      targetMsg.error = null;
+      targetMsg.content = "";
+      targetMsg.streaming = true;
+
+      state.isGenerating = true;
+      state.delegatedAgentIds = detectDelegatedAgents(query);
+      state.abortController = new AbortController();
+      setGeneratingUIState(true);
+      renderMessages();
+
+      const simulatedReport = [
+        `### Research Team Synthesis: ${query}\n\n`,
+        `> **Coordinator Notice:** Previewing simulated plain-text stream. When \`backend/main.py\` is running on \`http://127.0.0.1:5000\`, responses stream live from your Agno \`ResearchTeam\` (\`gpt-oss:120b\` + \`gemma4:31b-cloud\`).\n\n`,
+        `#### 1. Member Agent Delegation Summary\n`,
+        `| Member Agent | Agno Toolset | Model | Status & Contribution |\n`,
+        `| :--- | :--- | :--- | :--- |\n`,
+        `| **Search Agent** | \`DuckDuckGoTools\` | \`gemma4:31b-cloud\` | Retrieved current web developments with \`Asia/Kolkata\` datetime context. |\n`,
+        `| **Web Researcher** | \`WebSearchTools\` + \`WebsiteTools\` | \`gemma4:31b-cloud\` | Extracted and verified full-text insights from primary URLs. |\n`,
+        `| **Finance Agent** | \`YFinanceTools\` | \`gemma4:31b-cloud\` | Compiled ticker price, market cap, P/E ratio, and recent trend table. |\n`,
+        `| **YouTube Agent** | \`YouTubeTools\` | \`gemma4:31b-cloud\` | Ready for video caption and timestamp extraction. |\n`,
+        `| **Browser Agent** | \`WebBrowserTools\` | \`gemma4:31b-cloud\` | Standby to open target URLs directly in your browser on command. |\n\n`,
+        `#### 2. Example Market & Research Snapshot (Informational Only)\n`,
+        `| Metric | Value | Notes |\n`,
+        `| :--- | :--- | :--- |\n`,
+        `| **Ticker Symbol** | \`NVDA\` | Resolved via \`YFinanceTools\` |\n`,
+        `| **Data Currency** | \`USD\` | Live market feed when connected to Flask |\n`,
+        `| **Disclaimer** | Informational | Not financial advice (per \`FinanceAgent\` instructions) |\n\n`,
+        `#### 3. Backend Connection Snippet\n`,
+        "```python\n# Run your Flask backend from the project root:\npython -m backend.main\n# Listening on http://127.0.0.1:5000 (/api/health, /api/chat, /api/chat/stream)\n```"
+      ].join("");
+
+      const tokens = simulatedReport.match(/.{1,14}/gs) || [];
+      try {
+        for (const chunk of tokens) {
+          if (state.abortController.signal.aborted) {
+            throw new DOMException("Aborted", "AbortError");
+          }
+          targetMsg.content += chunk;
+          updateStreamingMessageDOM(targetMsg);
+          triggerNeuralPulse();
+          await new Promise(r => setTimeout(r, 26));
+        }
+      } catch (err) {
+        if (err.name === "AbortError") {
+          targetMsg.content += "\n\n> *[Stream aborted via AbortController]*";
+        }
+      } finally {
+        targetMsg.streaming = false;
+        state.isGenerating = false;
+        state.delegatedAgentIds = [];
+        state.abortController = null;
+        setGeneratingUIState(false);
+        persistSessions();
+        renderMessages();
+      }
+    }
+
+    function stopActiveGeneration() {
+      if (state.abortController) {
+        state.abortController.abort();
+      }
+    }
+
+    function setGeneratingUIState(isGen) {
+      const stopBar = document.getElementById("stopGenerationBar");
+      const sendBtn = document.getElementById("sendBtn");
+      if (stopBar) stopBar.classList.toggle("visible", isGen);
+      if (sendBtn) sendBtn.disabled = isGen;
+      renderAgentControls();
+    }
+
+    /*************************************************************************
+     * 12. THREE.JS 3D NEURAL NETWORK VISUALIZATION (RESEARCH TEAM + 5 AGENTS)
+     *************************************************************************/
+    let threeCtx = {
+      scene: null,
+      camera: null,
+      renderer: null,
+      coreGroup: null,
+      coreMesh: null,
+      coreWireframe: null,
+      agentNodes: [],
+      connectionLines: [],
+      pulsePackets: [],
+      orbitalRings: [],
+      particles: null,
+      raycaster: null,
+      mouse: null,
+      isDragging: false,
+      prevMouse: { x: 0, y: 0 },
+      spherical: { theta: 0.42, phi: 1.15, radius: 9.2 },
+      animationFrameId: null,
+      pulseBoost: 0
+    };
+
+    function isWebGLSupported() {
+      try {
+        const canvas = document.createElement("canvas");
+        return !!(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function initThreeNeuralScene() {
+      const canvas = document.getElementById("neuralCanvas");
+      const container = document.getElementById("canvasContainer");
+      const fallbackEl = document.getElementById("webglFallback");
+
+      if (!window.THREE || !isWebGLSupported() || state.useWebGLFallback) {
+        if (fallbackEl) fallbackEl.classList.add("visible");
+        if (canvas) canvas.style.display = "none";
+        return;
+      }
+
+      if (fallbackEl) fallbackEl.classList.remove("visible");
+      if (canvas) canvas.style.display = "block";
+
+      disposeThreeResources();
+
+      const width = container.clientWidth || 500;
+      const height = container.clientHeight || 420;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 100);
+      updateCameraFromSpherical(camera);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: "high-performance"
+      });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      scene.add(ambientLight);
+
+      const pointLight1 = new THREE.PointLight(0x38bdf8, 1.85, 25);
+      pointLight1.position.set(5, 6, 6);
+      scene.add(pointLight1);
+
+      const pointLight2 = new THREE.PointLight(0xa855f7, 1.55, 25);
+      pointLight2.position.set(-6, -4, 4);
+      scene.add(pointLight2);
+
+      const rootGroup = new THREE.Group();
+      scene.add(rootGroup);
+
+      // 1. Central Research Team Coordinator Core (gpt-oss:120b)
+      const coreGeo = new THREE.IcosahedronGeometry(0.92, 2);
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x1e40af,
+        emissiveIntensity: 0.78,
+        roughness: 0.2,
+        metalness: 0.8
+      });
+      const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+      rootGroup.add(coreMesh);
+
+      const wireGeo = new THREE.IcosahedronGeometry(1.18, 1);
+      const wireMat = new THREE.MeshBasicMaterial({
+        color: 0x67e8f9,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.36
+      });
+      const coreWireframe = new THREE.Mesh(wireGeo, wireMat);
+      rootGroup.add(coreWireframe);
+
+      // 2. Glowing Orbital Rings
+      const ringConfigs = [
+        { radius: 3.3, tube: 0.018, color: 0x38bdf8, rotX: Math.PI / 2.2, rotY: 0.2 },
+        { radius: 3.6, tube: 0.014, color: 0xa855f7, rotX: Math.PI / 1.7, rotY: -0.35 },
+        { radius: 4.1, tube: 0.012, color: 0x10b981, rotX: Math.PI / 2.6, rotY: 0.45 }
+      ];
+      const orbitalRings = ringConfigs.map(cfg => {
+        const rGeo = new THREE.TorusGeometry(cfg.radius, cfg.tube, 12, 72);
+        const rMat = new THREE.MeshBasicMaterial({
+          color: cfg.color,
+          transparent: true,
+          opacity: 0.28
+        });
+        const ring = new THREE.Mesh(rGeo, rMat);
+        ring.rotation.x = cfg.rotX;
+        ring.rotation.y = cfg.rotY;
+        rootGroup.add(ring);
+        return ring;
+      });
+
+      // 3. Five Specialized Agent Nodes + Synaptic Lines + Data Pulse Packets
+      const agentNodes = [];
+      const connectionLines = [];
+      const pulsePackets = [];
+
+      RESEARCH_AGENTS.forEach((agent, index) => {
+        const nodeGroup = new THREE.Group();
+        nodeGroup.userData = { agentId: agent.id, index };
+
+        const sphereGeo = new THREE.OctahedronGeometry(0.42, 2);
+        const sphereMat = new THREE.MeshStandardMaterial({
+          color: agent.hex,
+          emissive: agent.hex,
+          emissiveIntensity: 0.45,
+          roughness: 0.25,
+          metalness: 0.7
+        });
+        const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+        mesh.userData = { agentId: agent.id };
+        nodeGroup.add(mesh);
+
+        // Outer halo ring around each agent
+        const haloGeo = new THREE.RingGeometry(0.54, 0.62, 24);
+        const haloMat = new THREE.MeshBasicMaterial({
+          color: agent.hex,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.5
+        });
+        const halo = new THREE.Mesh(haloGeo, haloMat);
+        nodeGroup.add(halo);
+
+        rootGroup.add(nodeGroup);
+        agentNodes.push({ group: nodeGroup, mesh, halo, agent });
+
+        // Connection line from Central Coordinator (0,0,0) to Agent Node
+        const linePositions = new Float32Array(6);
+        const lineGeo = new THREE.BufferGeometry();
+        lineGeo.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
+        const lineMat = new THREE.LineBasicMaterial({
+          color: agent.hex,
+          transparent: true,
+          opacity: 0.55
+        });
+        const line = new THREE.Line(lineGeo, lineMat);
+        rootGroup.add(line);
+        connectionLines.push(line);
+
+        // Synaptic pulse packet travelling along connection
+        const packetGeo = new THREE.SphereGeometry(0.09, 10, 10);
+        const packetMat = new THREE.MeshBasicMaterial({
+          color: agent.hex
+        });
+        const packetMesh = new THREE.Mesh(packetGeo, packetMat);
+        rootGroup.add(packetMesh);
+        pulsePackets.push({
+          mesh: packetMesh,
+          progress: index * 0.2,
+          speed: 0.012 + index * 0.002,
+          agentIndex: index
+        });
+      });
+
+      // 4. Optimized Starfield / Neural Particle Cloud (capped at 160 particles for performance)
+      const particleCount = 160;
+      const pPositions = new Float32Array(particleCount * 3);
+      for (let i = 0; i < particleCount; i++) {
+        const r = 4.8 + Math.random() * 4.5;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        pPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        pPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        pPositions[i * 3 + 2] = r * Math.cos(phi);
+      }
+      const pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute("position", new THREE.BufferAttribute(pPositions, 3));
+      const pMat = new THREE.PointsMaterial({
+        color: state.theme === "light" ? 0x0284c7 : 0x94a3b8,
+        size: 0.06,
+        transparent: true,
+        opacity: 0.55
+      });
+      const particles = new THREE.Points(pGeo, pMat);
+      rootGroup.add(particles);
+
+      threeCtx.scene = scene;
+      threeCtx.camera = camera;
+      threeCtx.renderer = renderer;
+      threeCtx.coreGroup = rootGroup;
+      threeCtx.coreMesh = coreMesh;
+      threeCtx.coreWireframe = coreWireframe;
+      threeCtx.agentNodes = agentNodes;
+      threeCtx.connectionLines = connectionLines;
+      threeCtx.pulsePackets = pulsePackets;
+      threeCtx.orbitalRings = orbitalRings;
+      threeCtx.particles = particles;
+      threeCtx.raycaster = new THREE.Raycaster();
+      threeCtx.mouse = new THREE.Vector2();
+
+      bindCanvasPointerEvents(canvas);
+      startThreeAnimationLoop();
+    }
+
+    function updateCameraFromSpherical(camera) {
+      if (!camera) return;
+      const { radius, phi, theta } = threeCtx.spherical;
+      camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
+      camera.position.y = radius * Math.cos(phi);
+      camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
+      camera.lookAt(0, 0, 0);
+    }
+
+    function bindCanvasPointerEvents(canvas) {
+      if (!canvas || canvas.dataset.bound === "true") return;
+      canvas.dataset.bound = "true";
+
+      canvas.addEventListener("pointerdown", e => {
+        threeCtx.isDragging = true;
+        threeCtx.prevMouse = { x: e.clientX, y: e.clientY };
+      });
+
+      window.addEventListener("pointerup", () => {
+        threeCtx.isDragging = false;
+      });
+
+      window.addEventListener("pointermove", e => {
+        if (!threeCtx.isDragging || !threeCtx.camera) return;
+        const dx = e.clientX - threeCtx.prevMouse.x;
+        const dy = e.clientY - threeCtx.prevMouse.y;
+        threeCtx.prevMouse = { x: e.clientX, y: e.clientY };
+
+        threeCtx.spherical.theta -= dx * 0.007;
+        threeCtx.spherical.phi = Math.max(0.35, Math.min(Math.PI - 0.35, threeCtx.spherical.phi - dy * 0.007));
+        updateCameraFromSpherical(threeCtx.camera);
+      });
+
+      // Click on 3D Agent Node to select agent
+      canvas.addEventListener("click", e => {
+        if (!threeCtx.renderer || !threeCtx.camera || !threeCtx.raycaster) return;
+        const rect = canvas.getBoundingClientRect();
+        threeCtx.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        threeCtx.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        threeCtx.raycaster.setFromCamera(threeCtx.mouse, threeCtx.camera);
+        const pickables = threeCtx.agentNodes.map(n => n.mesh);
+        const hits = threeCtx.raycaster.intersectObjects(pickables, false);
+        if (hits.length > 0) {
+          const hitAgentId = hits[0].object.userData.agentId;
+          if (hitAgentId) {
+            selectAgent(hitAgentId);
+          }
+        }
+      });
+    }
+
+    function startThreeAnimationLoop() {
+      if (threeCtx.animationFrameId) {
+        cancelAnimationFrame(threeCtx.animationFrameId);
+      }
+
+      let clockStart = performance.now();
+
+      function animate(now) {
+        threeCtx.animationFrameId = requestAnimationFrame(animate);
+
+        if (document.visibilityState === "hidden" || !threeCtx.renderer) return;
+
+        const elapsed = (now - clockStart) * 0.001;
+        const motionFactor = state.reducedMotion ? 0.08 : 1.0;
+        const speedMultiplier = (state.isGenerating ? 2.4 : 1.0) * (1 + threeCtx.pulseBoost) * motionFactor;
+
+        if (threeCtx.pulseBoost > 0.01) {
+          threeCtx.pulseBoost *= 0.94;
+        } else {
+          threeCtx.pulseBoost = 0;
+        }
+
+        // Core rotation & breathing pulse
+        if (threeCtx.coreMesh && threeCtx.coreWireframe) {
+          threeCtx.coreMesh.rotation.y += 0.006 * speedMultiplier;
+          threeCtx.coreMesh.rotation.x += 0.003 * speedMultiplier;
+          threeCtx.coreWireframe.rotation.y -= 0.008 * speedMultiplier;
+          const pulseScale = 1 + Math.sin(elapsed * 2.6) * 0.06 * motionFactor;
+          threeCtx.coreMesh.scale.set(pulseScale, pulseScale, pulseScale);
+        }
+
+        // Orbital rings rotation
+        threeCtx.orbitalRings.forEach((ring, i) => {
+          ring.rotation.z += (i % 2 === 0 ? 0.003 : -0.0025) * speedMultiplier;
+        });
+
+        // Update 5 Specialized Agent Floating Nodes & Connection Lines
+        threeCtx.agentNodes.forEach((nodeObj, idx) => {
+          const { group, mesh, halo, agent } = nodeObj;
+          const angle = agent.phase + elapsed * agent.orbitSpeed * (state.reducedMotion ? 0.1 : 0.55);
+          const x = Math.cos(angle) * agent.orbitRadius;
+          const z = Math.sin(angle) * agent.orbitRadius;
+          const y = Math.sin(elapsed * 1.4 + idx * 1.2) * 0.65 * motionFactor;
+
+          group.position.set(x, y, z);
+          mesh.rotation.y += 0.015 * speedMultiplier;
+          mesh.rotation.x += 0.01 * speedMultiplier;
+
+          if (threeCtx.camera) {
+            halo.lookAt(threeCtx.camera.position);
+          }
+
+          // Highlight selected or actively delegated agent node
+          const isSelected = state.selectedAgentId === agent.id || state.delegatedAgentIds.includes(agent.id);
+          const hasFilter = Boolean(state.selectedAgentId || state.delegatedAgentIds.length > 0);
+          const targetScale = isSelected ? 1.38 : (hasFilter ? 0.84 : 1.0);
+          group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.12);
+
+          // Update connection line geometry from Core (0,0,0) to Agent (x,y,z)
+          const line = threeCtx.connectionLines[idx];
+          if (line) {
+            const posAttr = line.geometry.attributes.position;
+            posAttr.setXYZ(0, 0, 0, 0);
+            posAttr.setXYZ(1, x, y, z);
+            posAttr.needsUpdate = true;
+            line.material.opacity = isSelected ? 0.95 : (hasFilter ? 0.22 : 0.55);
+          }
+
+          // Update travelling synaptic packet along the line
+          const packet = threeCtx.pulsePackets[idx];
+          if (packet) {
+            const packetBoost = isSelected ? 1.65 : 1.0;
+            packet.progress = (packet.progress + packet.speed * speedMultiplier * packetBoost) % 1;
+            const t = packet.progress;
+            packet.mesh.position.set(x * t, y * t, z * t);
+          }
+        });
+
+        if (threeCtx.particles) {
+          threeCtx.particles.rotation.y += 0.0008 * speedMultiplier;
+        }
+
+        threeCtx.renderer.render(threeCtx.scene, threeCtx.camera);
+      }
+
+      threeCtx.animationFrameId = requestAnimationFrame(animate);
+    }
+
+    function triggerNeuralPulse(intense = false) {
+      threeCtx.pulseBoost = intense ? 1.6 : 0.85;
+    }
+
+    function handleThreeResize() {
+      const container = document.getElementById("canvasContainer");
+      if (!container || !threeCtx.renderer || !threeCtx.camera) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      if (width <= 0 || height <= 0) return;
+
+      threeCtx.camera.aspect = width / height;
+      threeCtx.camera.updateProjectionMatrix();
+      threeCtx.renderer.setSize(width, height);
+    }
+
+    function disposeThreeResources() {
+      if (threeCtx.animationFrameId) {
+        cancelAnimationFrame(threeCtx.animationFrameId);
+        threeCtx.animationFrameId = null;
+      }
+      if (threeCtx.scene) {
+        threeCtx.scene.traverse(obj => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(m => m.dispose && m.dispose());
+            } else if (obj.material.dispose) {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (threeCtx.renderer) {
+        threeCtx.renderer.dispose();
+      }
+    }
+
+    /*************************************************************************
+     * 13. THEME, MOTION & LAYOUT CONTROLS
+     *************************************************************************/
+    function applyTheme(themeName) {
+      state.theme = themeName === "light" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", state.theme);
+      safeStorageSet(STORAGE_KEYS.THEME, state.theme);
+
+      const themeIcon = document.getElementById("themeIcon");
+      if (themeIcon) {
+        themeIcon.setAttribute("data-lucide", state.theme === "dark" ? "sun" : "moon");
+        if (window.lucide) window.lucide.createIcons();
+      }
+
+      if (threeCtx.particles && threeCtx.particles.material) {
+        threeCtx.particles.material.color.setHex(state.theme === "light" ? 0x0284c7 : 0x94a3b8);
+      }
+    }
+
+    function applyReducedMotion(enabled) {
+      state.reducedMotion = !!enabled;
+      document.body.classList.toggle("reduced-motion", state.reducedMotion);
+      safeStorageSet(STORAGE_KEYS.REDUCED_MOTION, state.reducedMotion);
+      const btn = document.getElementById("motionToggleBtn");
+      if (btn) btn.classList.toggle("active", state.reducedMotion);
+    }
+
+    function setWorkspaceLayout(mode) {
+      const body = document.getElementById("workspaceBody");
+      if (!body) return;
+      body.classList.remove("layout-chat-focus", "layout-neural-focus");
+      if (mode === "chat") body.classList.add("layout-chat-focus");
+      if (mode === "neural") body.classList.add("layout-neural-focus");
+
+      document.querySelectorAll("[data-layout]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.layout === mode);
+      });
+
+      setTimeout(handleThreeResize, 360);
+    }
+
+    function setApiMode(useStream) {
+      state.useStreaming = !!useStream;
+      document.getElementById("modeStreamBtn").classList.toggle("active", state.useStreaming);
+      document.getElementById("modeStandardBtn").classList.toggle("active", !state.useStreaming);
+
+      const endpointLabel = document.getElementById("activeEndpointLabel");
+      const diagActiveMode = document.getElementById("diagActiveMode");
+      const epText = state.useStreaming
+        ? `POST ${API_ENDPOINTS.CHAT_STREAM}`
+        : `POST ${API_ENDPOINTS.CHAT}`;
+
+      if (endpointLabel) endpointLabel.textContent = epText;
+      if (diagActiveMode) diagActiveMode.textContent = epText;
+      showToast(`Active Endpoint: ${epText}`, "zap");
+    }
+
+    /*************************************************************************
+     * 14. EXPORT CURRENT SESSION AS MARKDOWN
+     *************************************************************************/
+    function exportCurrentSessionMarkdown() {
+      const session = getActiveSession();
+      if (!session || session.messages.length === 0) {
+        showToast("No messages in current session to export", "alert-circle");
+        return;
+      }
+      const lines = [
+        `# ${session.title}`,
+        `Exported from ResearchDesk Multi-Agent AI (${new Date().toLocaleString()})`,
+        ""
+      ];
+      session.messages.forEach(m => {
+        const speaker = m.role === "user" ? "### User" : "### Research Team";
+        lines.push(`${speaker} (${m.timestamp || ""})\n\n${m.content}\n`);
+      });
+
+      const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${session.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 32) || "researchdesk-session"}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("Exported session (.md)", "download");
+    }
+
+    /*************************************************************************
+     * 15. EVENT LISTENERS & INITIALIZATION
+     *************************************************************************/
+    function bindGlobalEvents() {
+      const appShell = document.getElementById("appShell");
+      document.getElementById("closeSidebarBtn").addEventListener("click", () => {
+        appShell.classList.add("sidebar-collapsed");
+        setTimeout(handleThreeResize, 340);
+      });
+      document.getElementById("openSidebarBtn").addEventListener("click", () => {
+        appShell.classList.toggle("sidebar-collapsed");
+        setTimeout(handleThreeResize, 340);
+      });
+
+      document.getElementById("newChatBtn").addEventListener("click", () => {
+        createNewSession();
+        showToast("Started new ResearchDesk session", "plus-circle");
+      });
+      document.getElementById("clearHistoryBtn").addEventListener("click", clearAllSessions);
+      document.getElementById("exportChatBtn").addEventListener("click", exportCurrentSessionMarkdown);
+
+      document.getElementById("historySearchInput").addEventListener("input", e => {
+        state.searchQuery = e.target.value || "";
+        renderSidebarHistory();
+      });
+
+      document.getElementById("historyList").addEventListener("click", e => {
+        const delBtn = e.target.closest("[data-delete-session]");
+        if (delBtn) {
+          deleteSession(delBtn.dataset.deleteSession, e);
+          return;
+        }
+        const item = e.target.closest("[data-session-id]");
+        if (item) {
+          state.activeSessionId = item.dataset.sessionId;
+          persistSessions();
+          renderSidebarHistory();
+          renderMessages();
+        }
+      });
+
+      document.getElementById("sidebarAgentList").addEventListener("click", e => {
+        const row = e.target.closest("[data-agent-select]");
+        if (row) selectAgent(row.dataset.agentSelect);
+      });
+      document.getElementById("agentCardsGrid").addEventListener("click", e => {
+        const card = e.target.closest("[data-agent-select]");
+        if (card) selectAgent(card.dataset.agentSelect);
+      });
+      document.getElementById("resetAgentFilterBtn").addEventListener("click", () => {
+        state.selectedAgentId = null;
+        renderAgentControls();
+      });
+
+      document.querySelectorAll("[data-layout]").forEach(btn => {
+        btn.addEventListener("click", () => setWorkspaceLayout(btn.dataset.layout));
+      });
+
+      document.getElementById("modeStreamBtn").addEventListener("click", () => setApiMode(true));
+      document.getElementById("modeStandardBtn").addEventListener("click", () => setApiMode(false));
+
+      document.getElementById("themeToggleBtn").addEventListener("click", () => {
+        applyTheme(state.theme === "dark" ? "light" : "dark");
+      });
+      document.getElementById("motionToggleBtn").addEventListener("click", () => {
+        applyReducedMotion(!state.reducedMotion);
+        showToast(state.reducedMotion ? "Reduced motion enabled" : "Full 3D motion enabled", "sparkles");
+      });
+
+      document.getElementById("resetCameraBtn").addEventListener("click", () => {
+        threeCtx.spherical = { theta: 0.42, phi: 1.15, radius: 9.2 };
+        updateCameraFromSpherical(threeCtx.camera);
+        showToast("3D camera orbit reset", "compass");
+      });
+      document.getElementById("pulseTestBtn").addEventListener("click", () => {
+        triggerNeuralPulse(true);
+        showToast("Triggered neural synaptic wave", "activity");
+      });
+      document.getElementById("toggleFallbackBtn").addEventListener("click", () => {
+        state.useWebGLFallback = !state.useWebGLFallback;
+        initThreeNeuralScene();
+        showToast(state.useWebGLFallback ? "Switched to 2D SVG Fallback" : "Switched to 3D WebGL Neural Core", "layers");
+      });
+
+      const modal = document.getElementById("diagnosticsModal");
+      document.getElementById("healthPillBtn").addEventListener("click", () => {
+        modal.classList.add("open");
+        checkBackendHealth(false);
+      });
+      document.getElementById("closeModalBtn").addEventListener("click", () => {
+        modal.classList.remove("open");
+      });
+      modal.addEventListener("click", e => {
+        if (e.target === modal) modal.classList.remove("open");
+      });
+      document.getElementById("runHealthCheckModalBtn").addEventListener("click", () => checkBackendHealth(true));
+      document.getElementById("pingHealthQuickBtn").addEventListener("click", () => checkBackendHealth(true));
+
+      document.getElementById("stopStreamBtn").addEventListener("click", stopActiveGeneration);
+
+      const chatForm = document.getElementById("chatForm");
+      const chatInput = document.getElementById("chatInput");
+      chatForm.addEventListener("submit", e => {
+        e.preventDefault();
+        handleSendPrompt(chatInput.value);
+      });
+      chatInput.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          handleSendPrompt(chatInput.value);
+        }
+      });
+      chatInput.addEventListener("input", () => {
+        chatInput.style.height = "auto";
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + "px";
+      });
+
+      document.getElementById("messagesContainer").addEventListener("click", e => {
+        const starterChip = e.target.closest("[data-starter-idx]");
+        if (starterChip) {
+          const item = STARTER_PROMPTS[Number(starterChip.dataset.starterIdx)];
+          if (item) {
+            renderAgentControls();
+            handleSendPrompt(item.prompt);
+          }
+          return;
+        }
+
+        const copyMsgBtn = e.target.closest("[data-copy-msg]");
+        if (copyMsgBtn) {
+          const session = getActiveSession();
+          const msg = session.messages.find(m => m.id === copyMsgBtn.dataset.copyMsg);
+          if (msg) copyTextToClipboard(msg.content, "Copied response to clipboard");
+          return;
+        }
+
+        const copyCodeBtn = e.target.closest("[data-copy-code]");
+        if (copyCodeBtn) {
+          const decoded = decodeURIComponent(copyCodeBtn.dataset.copyCode);
+          copyTextToClipboard(decoded, "Copied code block");
+          return;
+        }
+
+        const retryBtn = e.target.closest("[data-retry-msg]");
+        if (retryBtn) {
+          const session = getActiveSession();
+          const msg = session.messages.find(m => m.id === retryBtn.dataset.retryMsg);
+          if (msg && msg.promptSource) {
+            msg.error = null;
+            msg.content = "";
+            msg.streaming = true;
+            renderMessages();
+            executeBackendGeneration(session, msg, msg.promptSource);
+          }
+          return;
+        }
+
+        const simBtn = e.target.closest("[data-simulate-msg]");
+        if (simBtn) {
+          runSimulatedStreamForMessage(simBtn.dataset.simulateMsg);
+        }
+      });
+
+      window.addEventListener("resize", handleThreeResize);
+      window.addEventListener("beforeunload", disposeThreeResources);
+    }
+
+    function bootstrapApp() {
+      const savedTheme = safeStorageGet(STORAGE_KEYS.THEME, "dark");
+      const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const savedMotion = safeStorageGet(STORAGE_KEYS.REDUCED_MOTION, prefersReduced);
+
+      applyTheme(savedTheme);
+      applyReducedMotion(savedMotion);
+
+      const savedSessions = safeStorageGet(STORAGE_KEYS.SESSIONS, []);
+      const savedActiveId = safeStorageGet(STORAGE_KEYS.ACTIVE_SESSION, null);
+
+      if (Array.isArray(savedSessions) && savedSessions.length > 0) {
+        state.sessions = savedSessions;
+        state.activeSessionId = savedActiveId || savedSessions[0].id;
+      } else {
+        createNewSession("Welcome to ResearchDesk");
+      }
+
+      renderSidebarHistory();
+      renderAgentControls();
+      renderMessages();
+      bindGlobalEvents();
+      initThreeNeuralScene();
+
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => handleThreeResize());
+        const container = document.getElementById("canvasContainer");
+        if (container) ro.observe(container);
+      }
+
+      checkBackendHealth(false);
+      setInterval(() => checkBackendHealth(false), 30000);
+    }
+
+    window.addEventListener("DOMContentLoaded", bootstrapApp);
+  </script>
+</body>
+</html>

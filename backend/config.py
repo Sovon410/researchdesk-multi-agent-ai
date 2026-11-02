@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from dotenv import load_dotenv
-from agno.models.nvidia import Nvidia
 from agno.models.ollama import Ollama
 
 load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
@@ -12,41 +11,6 @@ class Model(ABC):
     @abstractmethod
     def get_model(self):
         pass
-
-# class ModelGemma(Model):
-#     def get_model(self):
-#         return Nvidia(
-#             id= "google/gemma-4-31b-it",
-#             base_url= "https://integrate.api.nvidia.com/v1"
-#         )
-    
-# class ModelGPTOSS(Model):
-#     def get_model(self):
-#         return Nvidia(
-#             id="openai/gpt-oss-20b",
-#             base_url= "https://integrate.api.nvidia.com/v1"
-#         )
-    
-# class ModelGLMFlash(Model):
-#     def get_model(self):
-#         return Nvidia(
-#             id= "z-ai/glm-5.3-flash",
-#             base_url= "https://integrate.api.nvidia.com/v1"
-#         )
-
-# class ModelDeepseekFlash(Model):
-#     def get_model(self):
-#         return Nvidia(
-#             id= "deepseek-ai/deepseek-v4.1-flash",
-#             base_url= "https://integrate.api.nvidia.com/v1"
-#         )
-    
-# class ModelMinimax(Model):
-#     def get_model(self):
-#         return Nvidia(
-#             id= "minimaxai/minimax-m3.1-flash",
-#             base_url= "https://integrate.api.nvidia.com/v1"
-#         )
 
 
 class OllamaGptOss(Model):
@@ -66,11 +30,6 @@ class OllamaQwen(Model):
 class SelectModel:
     def __init__(self):
         self._available_models = {
-            # "gemma" : ModelGemma,
-            # "gpt" : ModelGPTOSS,
-            # "glm" : ModelGLMFlash,
-            # "deepseek" : ModelDeepseekFlash,
-            # "minimax" : ModelMinimax
             "ollama-gpt" : OllamaGptOss,
             "ollama-gemma" : OllamaQwen
         }
