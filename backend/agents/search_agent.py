@@ -35,11 +35,11 @@ class SearchAgent:
 
 
 if __name__ == "__main__":
-    agent = SearchAgent()
-    search_agent = agent.search_agent()
-    search_agent.print_response(
-        "Tell me current time and date.",
-        stream= True
-    )
+    # agent = SearchAgent()
+    # search_agent = agent.search_agent()
+    # search_agent.print_response(
+    #     "Tell me current time and date.",
+    #     stream= True
+    # )
     
     pass
