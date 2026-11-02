@@ -1,0 +1,13 @@
+flask
+agno
+google-genai
+yfinance
+youtube-transcript-api
+beautifulsoup4
+ddgs
+python-dotenv
+streamlit
+openai
+setuptools
+ollama
+flask-cors

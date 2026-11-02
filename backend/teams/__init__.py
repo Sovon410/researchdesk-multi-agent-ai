@@ -1,0 +1,1 @@
+from .research_team import ResearchTeam
